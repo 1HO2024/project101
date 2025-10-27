@@ -1,0 +1,954 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.board.company.mapper.CompanyMapper">  
+  <!-- 로그인 -->
+  <select id="login">
+	SELECT USER_ID, USERNAME, COMPNAME, EMAIL, PASSWORD, PHONE_NUMBER, J_DATE
+	FROM   COMPANY_USERS
+	WHERE  USER_ID  = #{param1,jdbcType=VARCHAR}
+    AND    PASSWORD = #{param2,jdbcType=VARCHAR}
+   </select>
+  
+  <!-- 회원가입 -->
+  <insert id="signup" parameterType="com.board.company.vo.CompanyVo">
+    INSERT INTO COMPANY_USERS (
+	    USER_ID,
+	    USERNAME,
+	    COMPNAME,
+	    EMAIL,
+	    PASSWORD,
+	    PHONE_NUMBER
+	) VALUES (
+		#{user_id, 	jdbcType=VARCHAR}, 
+        #{username, jdbcType=VARCHAR}, 
+        #{compname, jdbcType=VARCHAR},
+        #{email, 	jdbcType=VARCHAR}, 
+        #{password, jdbcType=VARCHAR}, 
+        #{phone_number, jdbcType=VARCHAR}
+    )
+  </insert>
+  
+   <!-- 메인화면 검색기능 -->
+  <select id="getSearchtextList">
+  SELECT
+	    APLNUM, POST_ID, USER_ID, COMPNAME, RECRUITNUM,
+	      TO_CHAR(DEADLINE,'YYYY-MM-DD HH24:MI:SS') AS DEADLINE,
+	      DUTY, CAREER, EDU, SKILLS, LICENSES, WORKSPACE, SALARY, DEPARTMENT, HIT
+	FROM
+	    JOBPOSTING
+	WHERE COMPNAME = #{searchtext}
+  </select>
+  
+  <!-- 기업 등록 쿼리 -->
+  <insert id="companysignup">
+    INSERT INTO COMPANY (
+        COMPNAME,
+        CEO,
+        PHONE_NUMBER,
+        ADDRESS,
+        BUSINESS_TYPE,
+        LOGO 
+    ) VALUES (
+        #{compname, jdbcType=VARCHAR},
+        #{ceo, jdbcType=VARCHAR},
+        #{phone_number, jdbcType=VARCHAR},
+        #{address, jdbcType=VARCHAR},
+        #{business_type, jdbcType=VARCHAR},
+        #{logoPath, jdbcType=VARCHAR}  
+    )
+  </insert>
+  
+<!-- ID 중복 확인 쿼리 -->
+  <select id="idDupCheck">
+     SELECT 
+       USER_ID 
+    FROM 
+       USERS 
+    WHERE 
+       USER_ID = #{user_id}
+    UNION 
+    SELECT 
+       USER_ID 
+      FROM 
+         COMPANY_USERS 
+      WHERE 
+         USER_ID = #{user_id}
+  </select>
+  
+  <!-- 기업 확인 쿼리 -->
+  <select id="compDupCheck" >
+    SELECT COMPNAME 
+    FROM   COMPANY 
+    WHERE  COMPNAME = #{compname}
+  </select>
+  
+<!-- 이메일 확인 쿼리 -->
+  <select id="emailDupCheck">
+   SELECT 
+      EMAIL FROM USERS WHERE EMAIL = #{email} 
+   UNION 
+   SELECT 
+      EMAIL FROM COMPANY_USERS WHERE EMAIL = #{email}
+  </select>
+
+  <!-- 마이페이지_회원정보 -->
+  <select id="getUserById" parameterType="String" resultType="com.board.company.vo.CompanyVo">
+    SELECT USER_ID, USERNAME, COMPNAME, EMAIL, PASSWORD, PHONE_NUMBER, J_DATE
+    FROM   COMPANY_USERS
+    WHERE  USER_ID = #{user_id}
+  </select>
+  
+  <!-- 마이페이지_회원정보수정 -->
+  <update id="update">
+    UPDATE COMPANY_USERS
+    SET    PASSWORD     = #{password, jdbcType=VARCHAR},
+           USERNAME     = #{username},
+           EMAIL        = #{email},
+           PHONE_NUMBER = #{phone_number, jdbcType=VARCHAR}
+    WHERE  USER_ID    = #{user_id}
+  </update>
+  
+  <!-- 마이페이지_회원탈퇴 -->
+  <delete id="delete">
+    DELETE FROM COMPANY_USERS
+    WHERE  USER_ID = #{user_id, jdbcType=VARCHAR}
+  </delete>
+   
+  <!-- 채용공고_목록 --> 
+  <select id="getmainList" >
+    SELECT *
+    FROM (
+        SELECT 
+            jp.APLNUM, jp.POST_ID, jp.USER_ID, c.COMPNAME, jp.RECRUITNUM,
+            TO_CHAR(jp.DEADLINE, 'YYYY-MM-DD HH24:MI:SS') AS DEADLINE,
+            jp.DUTY, jp.CAREER, jp.EDU, jp.SKILLS, jp.LICENSES, jp.WORKSPACE,
+            jp.SALARY, jp.DEPARTMENT, jp.HIT, c.LOGO AS logoPath,
+            ROW_NUMBER() OVER (
+                ORDER BY 
+                    CASE 
+                        WHEN jp.DEADLINE > SYSDATE THEN 0
+                        ELSE 1
+                    END,
+                    jp.HIT DESC 
+            ) AS row_num
+        FROM 
+            JOBPOSTING jp
+        JOIN 
+            COMPANY c ON jp.COMPNAME = c.COMPNAME
+        WHERE jp.DEADLINE > SYSDATE - 7
+    )
+    WHERE row_num BETWEEN #{start} + 1 AND #{start} + #{size}
+  </select>
+
+  
+  <!-- 기업명 가지고 오기 -->
+  <select id="compnameByUserId">
+    SELECT COMPNAME 
+    FROM   COMPANY_USERS 
+    WHERE  USER_ID = #{user_id}
+  </select>
+  
+  <!-- 채용공고_상세페이지 -->
+  <select id="getmain" >
+    SELECT APLNUM, POST_ID,	USER_ID, COMPNAME, RECRUITNUM,
+	       TO_CHAR(DEADLINE,'YYYY-MM-DD HH24:MI:SS') DEADLINE,
+	       DUTY, CAREER, EDU, SKILLS, LICENSES, WORKSPACE, SALARY, DEPARTMENT, HIT, HOPESCORE
+	FROM   JOBPOSTING 
+	WHERE  APLNUM=#{aplnum} 
+  </select>
+  
+    <!-- 채용공고 리스트 정렬 -->
+   <!-- 최신순 -->
+   <select id="getpostlistSortfirsts">
+    SELECT *
+    FROM (
+        SELECT 
+            jp.APLNUM, jp.POST_ID, jp.USER_ID, c.COMPNAME, jp.RECRUITNUM,
+            TO_CHAR(jp.DEADLINE, 'YYYY-MM-DD HH24:MI:SS') AS DEADLINE,
+            jp.DUTY, jp.CAREER, jp.EDU, jp.SKILLS, jp.LICENSES, jp.WORKSPACE,
+            jp.SALARY, jp.DEPARTMENT, jp.HIT, c.LOGO AS logoPath,
+            ROW_NUMBER() OVER (
+                ORDER BY 
+                    CASE 
+                        WHEN jp.DEADLINE > SYSDATE THEN 0
+                        ELSE 1
+                    END,
+                    jp.APLNUM DESC 
+            ) AS row_num
+        FROM 
+            JOBPOSTING jp
+        JOIN 
+            COMPANY c ON jp.COMPNAME = c.COMPNAME
+        WHERE jp.DEADLINE > SYSDATE - 7
+    )
+    WHERE row_num BETWEEN #{start} + 1 AND #{start} + #{size}
+   </select>
+
+   <!-- 마감순 -->
+   <select id="getpostlistSortLast">
+    SELECT *
+    FROM (
+        SELECT 
+            jp.APLNUM, jp.POST_ID, jp.USER_ID, c.COMPNAME, jp.RECRUITNUM,
+            TO_CHAR(jp.DEADLINE, 'YYYY-MM-DD HH24:MI:SS') AS DEADLINE,
+            jp.DUTY, jp.CAREER, jp.EDU, jp.SKILLS, jp.LICENSES, jp.WORKSPACE,
+            jp.SALARY, jp.DEPARTMENT, jp.HIT, c.LOGO AS logoPath,
+            ROW_NUMBER() OVER (
+                ORDER BY 
+                    CASE 
+                        WHEN jp.DEADLINE > SYSDATE THEN 0
+                        ELSE 1
+                    END,
+                    jp.DEADLINE ASC 
+            ) AS row_num
+        FROM 
+            JOBPOSTING jp
+        JOIN 
+            COMPANY c ON jp.COMPNAME = c.COMPNAME
+        WHERE jp.DEADLINE > SYSDATE - 7
+    )
+    WHERE row_num BETWEEN #{start} + 1 AND #{start} + #{size}
+   </select>
+
+   <!-- 조회순 리스트 정렬 -->
+   <select id="getpostlistSortCount">
+    SELECT *
+    FROM (
+        SELECT 
+            jp.APLNUM, jp.POST_ID, jp.USER_ID, c.COMPNAME, jp.RECRUITNUM,
+            TO_CHAR(jp.DEADLINE, 'YYYY-MM-DD HH24:MI:SS') AS DEADLINE,
+            jp.DUTY, jp.CAREER, jp.EDU, jp.SKILLS, jp.LICENSES, jp.WORKSPACE,
+            jp.SALARY, jp.DEPARTMENT, jp.HIT, c.LOGO AS logoPath,
+            ROW_NUMBER() OVER (
+                ORDER BY 
+                    CASE 
+                        WHEN jp.DEADLINE > SYSDATE THEN 0
+                        ELSE 1
+                    END,
+                    jp.HIT DESC 
+            ) AS row_num
+        FROM 
+            JOBPOSTING jp
+        JOIN 
+            COMPANY c ON jp.COMPNAME = c.COMPNAME
+        WHERE jp.DEADLINE > SYSDATE - 7
+    )
+    WHERE row_num BETWEEN #{start} + 1 AND #{start} + #{size}
+   </select>
+
+<select id="getMatching">
+SELECT
+    APLNUM, POST_ID, USER_ID, COMPNAME, RECRUITNUM, TO_CHAR(DEADLINE,'YYYY-MM-DD HH24:MI:SS') DEADLINE,
+    DUTY, CAREER, EDU, SKILLS, LICENSES, WORKSPACE,
+    SALARY, DEPARTMENT, HIT
+FROM
+    JOBPOSTING
+WHERE 1=1
+	    <if test="career != null and career != ''">
+	      AND career = #{career}
+	    </if>
+	    <if test="department != null and department != ''">
+	      AND department = #{department}
+	    </if>
+	    <if test="workspace != null and workspace != ''">
+	      AND workspace = #{workspace}
+	    </if>
+	    <if test="edu != null and edu != ''">
+	      AND edu = #{edu}
+	    </if>
+
+</select>
+
+  <!-- 기업 정보 가지고 오기 -->
+  <select id="getcomp">
+    SELECT COMPNAME, CEO, PHONE_NUMBER, ADDRESS, CREATE_DATE, BUSINESS_TYPE, LOGO
+    FROM   COMPANY
+    WHERE  COMPNAME = #{compname}
+  </select>
+    
+  <!-- 담당자 정보 가지고 오기 -->
+  <select id="getuser">
+    SELECT USER_ID, USERNAME, COMPNAME, EMAIL, PHONE_NUMBER
+    FROM   COMPANY_USERS
+    WHERE  USER_ID = #{user_id}
+  </select>
+  
+  <!-- 채용공고_등록 -->
+  <insert id="insertposting">
+    INSERT INTO jobposting (APLNUM ,POST_ID
+                         ,USER_ID, COMPNAME
+                         ,RECRUITNUM,DEADLINE 
+                         ,DUTY,WORKSPACE 
+                         ,SALARY,DEPARTMENT
+                         ,EDU,CAREER
+                         ,SKILLS,LICENSES,HOPESCORE,LICENSESSCORE,CAREERSCORE,EDUSCORE,SKILLSSCORE) 
+    VALUES ( (SELECT NVL(MAX(APLNUM),0)+1 FROM JOBPOSTING ) ,#{post_id, jdbcType=VARCHAR}
+            ,#{user_id}, #{compname}
+            ,#{recruitnum, jdbcType=VARCHAR} ,TO_DATE(REPLACE(#{deadline}, 'T', '') || ':00', 'YYYY-MM-DD HH24:MI:SS')
+            ,#{duty, jdbcType=VARCHAR} ,#{workspace, jdbcType=VARCHAR} 
+            ,#{salary, jdbcType=VARCHAR} ,#{department, jdbcType=VARCHAR}
+            ,#{edu, jdbcType=VARCHAR},#{career, jdbcType=VARCHAR}
+            ,#{skills, jdbcType=VARCHAR},#{licenses, jdbcType=VARCHAR},#{hopescore, jdbcType=VARCHAR},
+            #{licensesscore, jdbcType=VARCHAR},#{careerscore, jdbcType=VARCHAR},#{eduscore, jdbcType=VARCHAR},#{skillsscore, jdbcType=VARCHAR})
+  
+  </insert>
+  
+  <!-- 채용공고_삭제 -->
+  <delete id="deleteposting">
+    DELETE FROM JOBPOSTING
+    WHERE APLNUM = #{aplnum}
+  </delete>
+  
+  <!-- 채용공고_수정 -->
+  <update id="updateposting">
+    UPDATE 
+           JOBPOSTING
+     SET    
+           POST_ID       = #{post_id}
+          ,RECRUITNUM    = #{recruitnum}
+          ,WORKSPACE     = #{workspace} 
+          ,DEADLINE      = TO_DATE(REPLACE(#{deadline}, 'T', '') || ':00', 'YYYY-MM-DD HH24:MI:SS')
+          ,SALARY        = #{salary}
+          ,DEPARTMENT    = #{department}
+          ,SKILLS        = #{skills}
+          ,SKILLSSCORE   = #{skillsscore}
+          ,LICENSES      = #{licenses}
+          ,LICENSESSCORE = #{licensesscore}
+          ,CAREER        = #{career}
+          ,CAREERSCORE   = #{careerscore}
+          ,EDU           = #{edu}
+          ,EDUSCORE      = #{eduscore}
+          ,DUTY          = #{duty}
+          ,HOPESCORE     = #{hopescore}
+    WHERE 
+         APLNUM       = #{aplnum}
+  </update>
+  
+  <!-- 채용공고_조회수 -->
+  <update id="plushit">
+   UPDATE JOBPOSTING
+      SET HIT = HIT+1
+      WHERE APLNUM= #{aplnum}
+  </update>
+  
+  <!-- 채용공고 정렬,총공고수 -->
+  <!-- hit 기준으로 정렬 채용공고 목록 조회 -->
+  <select id="getnoPostList"> 
+    SELECT *
+    FROM (
+        SELECT 
+            jp.APLNUM, jp.POST_ID, jp.USER_ID, c.COMPNAME, jp.RECRUITNUM,
+            TO_CHAR(jp.DEADLINE, 'YYYY-MM-DD HH24:MI:SS') AS DEADLINE,
+            jp.DUTY, jp.CAREER, jp.EDU, jp.SKILLS, jp.LICENSES, jp.WORKSPACE,
+            jp.SALARY, jp.DEPARTMENT, jp.HIT, c.LOGO AS logoPath,
+            ROW_NUMBER() OVER (ORDER BY jp.HIT DESC) AS row_num
+        FROM 
+            JOBPOSTING jp
+        JOIN 
+            COMPANY c ON jp.COMPNAME = c.COMPNAME
+        WHERE jp.DEADLINE > SYSDATE - 7 
+    )
+    WHERE row_num BETWEEN #{start} + 1 AND #{start} + #{size}
+  </select>  
+  <select id="getmainPostList"> 
+    SELECT *
+    FROM (
+        SELECT 
+            jp.APLNUM, jp.POST_ID, jp.USER_ID, c.COMPNAME, jp.RECRUITNUM,
+            TO_CHAR(jp.DEADLINE, 'YYYY-MM-DD HH24:MI:SS') AS DEADLINE,
+            jp.DUTY, jp.CAREER, jp.EDU, jp.SKILLS, jp.LICENSES, jp.WORKSPACE,
+            jp.SALARY, jp.DEPARTMENT, jp.HIT, c.LOGO AS logoPath,
+            ROW_NUMBER() OVER (ORDER BY jp.HIT DESC) AS row_num
+        FROM 
+            JOBPOSTING jp
+        JOIN 
+            COMPANY c ON jp.COMPNAME = c.COMPNAME
+        WHERE jp.DEADLINE > SYSDATE - 7 
+    )
+    WHERE row_num BETWEEN #{start} + 1 AND #{start} + #{size}
+  </select>
+    
+  <select id="getnoTotalPost">
+    SELECT COUNT(*)
+    FROM JOBPOSTING
+    WHERE DEADLINE > SYSDATE - 7
+  </select>
+  
+  <select id="getmainTotalPost">
+    SELECT COUNT(*)
+    FROM JOBPOSTING
+    WHERE DEADLINE > SYSDATE - 7
+  </select>
+  
+  <select id="getreTotalPost">
+	SELECT COUNT(*)
+    FROM JOBPOSTING
+    WHERE DEADLINE > SYSDATE - 7
+  </select>
+  
+  
+  <select id="getrePostList">
+    SELECT *
+    FROM (
+        SELECT 
+            jp.APLNUM, jp.POST_ID, jp.USER_ID, c.COMPNAME, jp.RECRUITNUM,
+            TO_CHAR(jp.DEADLINE, 'YYYY-MM-DD HH24:MI:SS') AS DEADLINE,
+            jp.DUTY, jp.CAREER, jp.EDU, jp.SKILLS, jp.LICENSES, jp.WORKSPACE,
+            jp.SALARY, jp.DEPARTMENT, jp.HIT, c.LOGO AS logoPath,
+            ROW_NUMBER() OVER (ORDER BY 
+                CASE 
+                    WHEN jp.DEADLINE > SYSDATE THEN 0 -- 마감되지 않은 공고는 우선
+                    ELSE 1 -- 마감된 공고는 나중
+                END, 
+                <choose>
+                    <when test="sort == 'firsts'">
+                        jp.DEADLINE DESC -- 최신순
+                    </when>
+                    <when test="sort == 'counts'">
+                        jp.HIT DESC -- 조회순
+                    </when>
+                    <when test="sort == 'laters'">
+                        jp.DEADLINE ASC -- 마감순
+                    </when>
+                    <otherwise>
+                        jp.DEADLINE DESC -- 기본적으로 최신순
+                    </otherwise>
+                </choose>
+            ) AS row_num
+        FROM 
+            JOBPOSTING jp
+        JOIN 
+            COMPANY c ON jp.COMPNAME = c.COMPNAME
+        WHERE jp.DEADLINE > SYSDATE - 7 
+    )
+    WHERE row_num BETWEEN #{start} + 1 AND #{start} + #{size}
+</select>
+
+
+  
+  <!-- 기업별공고 리스트 -->
+  <select id="getCompanyList">
+   SELECT APLNUM, POST_ID, USER_ID, COMPNAME, RECRUITNUM,
+	      TO_CHAR(DEADLINE,'YYYY-MM-DD HH24:MI:SS') AS DEADLINE,
+	      DUTY, CAREER, EDU, SKILLS, LICENSES, WORKSPACE, SALARY, DEPARTMENT, HIT
+    FROM  JOBPOSTING 
+    WHERE COMPNAME = #{compname, jdbcType=VARCHAR}
+    ORDER BY DEADLINE DESC
+    OFFSET #{start} ROWS FETCH NEXT #{size} ROWS ONLY
+  </select>
+  
+  <select id="getTotalCpost">
+    SELECT COUNT(*)
+    FROM JOBPOSTING
+    WHERE COMPNAME = #{compname, jdbcType=VARCHAR}
+  </select>
+  
+  <!-- 이력서_목록_user_id로 POST_ID찾기 -->
+  <select id="getPostIdsByUserId">
+    SELECT POST_ID
+    FROM JOBPOSTING
+    WHERE COMPNAME = #{compname, jdbcType=VARCHAR}
+    OFFSET #{start} ROWS FETCH NEXT #{size} ROWS ONLY
+  </select>
+
+  <select id="getResumeCount">
+    SELECT COUNT(*) 
+    FROM APPLICATIONS 
+    WHERE POST_ID IN (
+        SELECT POST_ID 
+        FROM JOBPOSTING 
+        WHERE COMPNAME = #{compname, jdbcType=VARCHAR}
+    )
+  </select>
+  
+ <!-- 이력서_목록_post_id로 지원서 목록 가져오기 -->
+ <select id="getApplicationsByPostIds" parameterType="list" resultType="com.board.individual.vo.IndividualVo">
+    SELECT 
+        DISTINCT POST_ID, 
+        FIRST_VALUE(APP_ID) OVER (PARTITION BY POST_ID ORDER BY APP_ID ASC) AS APP_ID,
+        FIRST_VALUE(USER_ID) OVER (PARTITION BY POST_ID ORDER BY APP_ID ASC) AS USER_ID,
+        FIRST_VALUE(APLNUM) OVER (PARTITION BY POST_ID ORDER BY APP_ID ASC) AS APLNUM,
+        FIRST_VALUE(TITLE) OVER (PARTITION BY POST_ID ORDER BY APP_ID ASC) AS TITLE,
+        FIRST_VALUE(APP_DATE) OVER (PARTITION BY POST_ID ORDER BY APP_ID ASC) AS APP_DATE,
+        FIRST_VALUE(PICTURE) OVER (PARTITION BY POST_ID ORDER BY APP_ID ASC) AS PICTURE,
+        FIRST_VALUE(LOCATION) OVER (PARTITION BY POST_ID ORDER BY APP_ID ASC) AS LOCATION,
+        FIRST_VALUE(RESULT) OVER (PARTITION BY POST_ID ORDER BY APP_ID ASC) AS RESULT
+    FROM APPLICATIONS
+    WHERE 
+    <if test="list != null and list.size() > 0">
+        POST_ID IN
+        <foreach item="postId" index="index" collection="list" open="(" separator="," close=")">
+            #{postId, jdbcType=VARCHAR}
+        </foreach>
+        AND (SELECT COUNT(*) FROM APPLICATIONS WHERE POST_ID IN
+        <foreach item="postId" index="index" collection="list" open="(" separator="," close=")">
+            #{postId, jdbcType=VARCHAR}
+        </foreach>) > 0
+    </if>
+    <if test="list == null or list.size() == 0">
+        1 = 0  <!-- 항상 false가 되도록 조건 추가 -->
+    </if>
+    ORDER BY POST_ID ASC, APP_ID ASC
+</select>
+  <!-- 이력서_목록_post_id로 지원서 목록 가져오기(상세보기용) -->
+  <select id="getResumeListByPostId">
+SELECT 
+    *
+FROM 
+    APPLICATIONS AP JOIN  RESUMES RE ON AP.USER_ID = RE.USER_ID
+WHERE 
+    AP.POST_ID = #{arg1}
+ORDER BY 
+    RE.USERNAME ASC
+  </select>
+  
+  <!-- 이력서_상세페이지 -->
+  <select id="getresumeList">
+   SELECT REPLACE(TITLE, ' ', '') AS TITLE, USER_ID, USERNAME, EMAIL, PHONE_NUMBER, ADDRESS, BIRTH, GENDER, NUMBER2, CAREER,
+          CAREERS, EDUWHEN, EDUWHER, EDU, MAJOR, LICENSES1, LICENSES2, LICENSES3, PUBLISHER1,
+          PUBLISHER2, PUBLISHER3, PASSDATE1, PASSDATE2, PASSDATE3, SKILLS1, SKILLS2, SKILLS3,
+          SKILLS4, SKILLS5, PORTFOLIO AS portfolioPath, SELFINTRO, PHOTO AS photoPath
+    FROM  RESUMES
+    WHERE REPLACE(TITLE, ' ', '')= #{title}
+  </select>
+  
+    <!-- 점수 계산 -->
+<select id="getScoreList">
+SELECT 
+    AP.POST_ID,RE.USER_ID,RE.USERNAME, 
+    JO.SKILLS, JO.LICENSES, JO.CAREER, JO.EDU,
+    JO.HOPESCORE, JO.LICENSESSCORE, JO.SKILLSSCORE, JO.EDUSCORE, JO.CAREERSCORE,JO.COMPNAME
+FROM 
+    RESUMES RE JOIN  APPLICATIONS AP ON RE.TITLE = AP.TITLE
+               JOIN  JOBPOSTING JO ON AP.POST_ID = JO.POST_ID
+               AND   JO.COMPNAME=#{compname}
+ORDER BY RE.USERNAME ASC
+</select>
+
+  
+  <!-- 이력서_수정 -->
+  <update id="updateresume">
+	UPDATE APPLICATIONS
+	SET    RESULT = #{param2}
+	WHERE  TITLE = #{param1} AND POST_ID = #{param3}
+  </update>
+  
+ <!-- 인재추천 리스트 -->
+  <select id="recommendList">
+   WITH RankedResumes AS (
+    SELECT 
+        R.USERNAME,
+        R.TITLE,
+        R.PHONE_NUMBER,
+        R.BIRTH,
+        J.LICENSES,
+        R.LICENSES1,
+        R.LICENSES2,
+        R.LICENSES3,
+        R.EDU,
+        R.CAREER,
+        ROW_NUMBER() OVER (PARTITION BY R.USERNAME ORDER BY R.TITLE DESC) AS rn
+    FROM RESUMES R
+    INNER JOIN JOBPOSTING J ON (
+        UPPER(J.LICENSES) IN (UPPER(R.LICENSES1), UPPER(R.LICENSES2), UPPER(R.LICENSES3))
+        OR UPPER(J.LICENSES) LIKE '%' || UPPER(R.LICENSES1) || '%'
+        OR UPPER(J.LICENSES) LIKE '%' || UPPER(R.LICENSES2) || '%'
+        OR UPPER(J.LICENSES) LIKE '%' || UPPER(R.LICENSES3) || '%'
+    )
+    WHERE J.COMPNAME = #{compname}
+)
+SELECT 
+    USERNAME,
+    TITLE,
+    PHONE_NUMBER,
+    BIRTH,
+    LICENSES,
+    LICENSES1,
+    LICENSES2,
+    LICENSES3,
+    EDU,
+    CAREER
+FROM RankedResumes
+WHERE rn = 1
+ORDER BY USERNAME
+    OFFSET #{start} ROWS FETCH NEXT #{size} ROWS ONLY
+  </select>
+  
+  <select id="getTotalRecommend">
+    SELECT COUNT(*)
+    FROM RESUMES R
+    INNER JOIN JOBPOSTING J ON (
+        UPPER(J.LICENSES) IN (UPPER(R.LICENSES1), UPPER(R.LICENSES2), UPPER(R.LICENSES3))
+        OR UPPER(J.LICENSES) LIKE '%' || UPPER(R.LICENSES1) || '%'
+        OR UPPER(J.LICENSES) LIKE '%' || UPPER(R.LICENSES2) || '%'
+        OR UPPER(J.LICENSES) LIKE '%' || UPPER(R.LICENSES3) || '%'
+    )
+    WHERE J.COMPNAME = #{compname}
+  </select>
+  
+     <!-- 북마크 --> 
+  <insert id="saveBookmark"> 
+INSERT INTO COMBOOKMARK (
+    CBOOK_ID,
+    USER_ID,
+    USERNAME,
+    COMPNAME,
+    BIRTH,
+    PHONE_NUMBER,
+    TITLE         
+) VALUES (
+   ( (SELECT NVL(MAX(CBOOK_ID),0)+1 FROM COMBOOKMARK )),
+   #{user_id},
+   #{username},
+   #{compname},
+   #{birth},
+   #{phone_number},
+   #{title}
+)
+  </insert>
+  
+   <!-- 북마크 --> 
+  <update id="toggleBookmark">
+    UPDATE COMBOOKMARK  
+    SET  BOOKMARK = CASE
+         WHEN BOOKMARK = 'OFF' THEN 'ON'  
+         ELSE 'OFF' END  ,
+         S_DATE = SYSDATE  
+         WHERE USER_ID = #{arg0} 
+         AND TITLE = #{arg1}  
+  </update>
+  
+  <!-- 북마크 --> 
+  <select id="getBookmark">
+  SELECT CBOOK_ID, USER_ID, COMPNAME, USERNAME, BIRTH, PHONE_NUMBER, TITLE,
+         BOOKMARK, S_DATE
+  FROM   COMBOOKMARK
+  WHERE  USER_ID = #{arg0} 
+  AND    TITLE = #{arg1}
+  </select>
+  
+  <!-- 북마크 --> 
+  <select id="bookmarkList">
+  SELECT CBOOK_ID, USER_ID, COMPNAME, USERNAME, BIRTH, PHONE_NUMBER, TITLE,
+         BOOKMARK, S_DATE
+  FROM   COMBOOKMARK
+  WHERE  USER_ID = #{user_id} 
+  AND    BOOKMARK = 'ON'
+  ORDER BY S_DATE DESC
+  OFFSET #{start} ROWS FETCH NEXT #{size} ROWS ONLY
+  </select>
+  
+  <select id="getTotalBookmark">
+    SELECT COUNT(*)
+    FROM COMBOOKMARK
+    WHERE USER_ID = #{user_id}
+  </select>
+  
+
+  <!-- 북마크 --> 
+ <select id="isBookmark">
+  SELECT BOOKMARK
+  FROM   COMBOOKMARK
+  WHERE  USER_ID = #{arg0} 
+  AND    TITLE = #{arg1}
+  </select>
+  
+  <!-- 고객센터_FAQ_목록 -->
+  <select id="getfaqList">
+   SELECT CSP_ID, TYPE, CSP_TITLE, USER_ID, CSP_PW, CONTENT, RESULT
+    FROM  CS
+    WHERE USER_ID = 'admin'
+  </select>
+  
+  <!-- 고객센터_FAQ제외_목록 -->
+  <select id="getcsList">
+   SELECT CSP_ID, TYPE, CSP_TITLE, USER_ID, CSP_PW, CONTENT, RESULT, C_DATE
+    FROM  CS
+    WHERE NOT USER_ID IN 'admin'
+    OFFSET #{start} ROWS FETCH NEXT #{size} ROWS ONLY
+  </select>
+  
+  <!-- 총 CS 개수 -->
+  <select id="getTotalCs">
+   SELECT COUNT(*) 
+   FROM CS
+   WHERE USER_ID NOT IN ('admin')
+  </select>
+  
+  
+  <!-- 고객센터_목록 -->
+<select id="getcs">
+    SELECT *
+    FROM CS
+    WHERE CSP_ID = #{csp_id, jdbcType=INTEGER}
+</select>
+  
+  <!-- 문의글_등록 -->
+  <insert id="insertcs">
+    INSERT INTO CS (CSP_ID ,TYPE 
+                         ,CSP_TITLE,USER_ID 
+                         ,CSP_PW,CONTENT 
+                         ,CSP_FILE,EMAIL) 
+    VALUES ( (SELECT NVL(MAX(csp_id),0)+1 FROM CS ) ,#{type, jdbcType=VARCHAR} 
+            ,#{csp_title, jdbcType=VARCHAR} ,#{user_id, jdbcType=VARCHAR} 
+            ,#{csp_pw, jdbcType=VARCHAR} ,#{content, jdbcType=VARCHAR} 
+            ,#{csp_file, jdbcType=VARCHAR} ,#{email, jdbcType=VARCHAR}) 
+  </insert>
+  
+  <!-- 문의글_수정 -->
+  <update id="updatecs">
+    UPDATE CS
+     SET   TYPE      = #{type}
+          ,CSP_TITLE = #{csp_title}
+          ,CSP_PW    = #{csp_pw} 
+          ,CONTENT   = #{content}
+          ,CSP_FILE  = #{csp_file}
+          ,EMAIL     = #{email}
+    WHERE  CSP_ID    = #{csp_id}
+  </update>
+  
+  <!-- 문의글_삭제 -->
+  <delete id="deletecs">
+    DELETE FROM CS
+    WHERE CSP_ID = #{csp_id}  
+  </delete>
+  
+     <!-- stats -->
+  <select id="getTotalUsers" resultType="int">
+    SELECT COUNT(*) FROM COMPANY_USERS
+  </select>
+
+  <select id="getTotalCompUsers">
+    SELECT COUNT(*) FROM JOBPOSTING
+  </select>
+  
+  <select id="getTotalPost">
+    SELECT COUNT(*) FROM USERS
+  </select>
+  
+   <!-- 픽미 메세지 -->
+  <insert id="sendMassege">
+INSERT INTO MESSAGES (
+    MESSAGE_ID,
+    SENDER_COMPID,
+    SENDER_COMPNAME,
+    RECEIVER_USERID,
+    RECEIVER_USERNAME,
+    RECEIVER_EMAIL,
+    MCONTENT,
+    DIVISION
+) VALUES (
+( (SELECT NVL(MAX(MESSAGE_ID),0)+1 FROM MESSAGES )),
+#{compuser_id},
+#{compname},
+#{user_id},
+#{username},
+#{email},
+#{compname}||'님의 PICK ME 요청이 도착했습니다.',
+'PICK ME'
+)
+  </insert>
+
+
+  
+    <select id="getUserinfo">
+  SELECT USER_ID,USERNAME,EMAIL 
+   FROM USERS
+  WHERE username = #{arg0}
+  AND   phone_number= #{arg2}
+
+  </select>
+  
+ <insert id="sendMassege2">
+INSERT INTO MESSAGES (
+    MESSAGE_ID,
+    SENDER_COMPID,
+    SENDER_COMPNAME,
+    RECEIVER_USERID,
+    RECEIVER_USERNAME,
+    RECEIVER_EMAIL,
+    MCONTENT,
+    DIVISION
+) VALUES (
+( (SELECT NVL(MAX(MESSAGE_ID),0)+1 FROM MESSAGES )),
+#{compuser_id},
+#{compname},
+#{user_id},
+#{username},
+#{email},
+#{compname}||'님이 PICK ME 요청을 취소하셨습니다.',
+'PICK ME'
+)
+  </insert>
+ 
+ <!-- 메세지 불러오기  --> 
+ <select id="getMessages">
+  SELECT * FROM MESSAGES
+  WHERE RECEIVER_COMPID = #{user_id}
+  ORDER BY MESSAGE_ID DESC
+ </select> 
+
+   <!-- 메시지 중복 확인-->
+    
+    <select id="checkdupmes">
+    SELECT MCONTENT FROM MESSAGES
+    WHERE SENDER_COMPID = 'ADMIN'
+    AND   SENDER_COMPNAME ='픽미'
+    AND   RECEIVER_COMPID = #{user_id}
+    AND   MCONTENT = '픽미의 새로운 인재추천!!'||#{username}
+    ORDER BY STIME DESC 
+    </select>
+      
+    <!-- 메시지 보내기 인재추천 -->
+   <insert id="sendAIMassege">
+    INSERT INTO MESSAGES (
+    MESSAGE_ID,
+    SENDER_COMPID,
+    SENDER_COMPNAME,
+    RECEIVER_COMPID,
+    MCONTENT,
+    DIVISION
+   ) VALUES (
+   ( (SELECT NVL(MAX(MESSAGE_ID),0)+1 FROM MESSAGES )),
+   'ADMIN',
+   '픽미',
+   #{user_id},
+   '픽미의 새로운 인재추천!!'||#{username},
+   '인재추천'
+   )
+</insert>
+
+  <!--  이력서 지원결과 메세지 위한 조회 -->
+<select id="getApplicationformessage">
+SELECT * FROM APPLICATIONS
+WHERE POST_ID = #{post_id}
+    AND   RESULT IS NOT NULL
+
+</select>
+
+   <!--  이력서지원 결과 메세지  -->
+<insert id="sendresumeresultMassege">
+INSERT INTO MESSAGES (
+    MESSAGE_ID,
+    SENDER_COMPID,
+    SENDER_COMPNAME,
+    RECEIVER_USERID,
+    MCONTENT,
+    DIVISION
+) VALUES (
+( (SELECT NVL(MAX(MESSAGE_ID),0)+1 FROM MESSAGES )),
+#{compuser_id},
+#{compname},
+#{user_id},
+#{post_id}||'의 지원결과가 발표되었습니다.',
+'지원결과'
+)
+  </insert>
+
+  <!-- 11.14 북마크(찜) --> 
+  <insert id="saveJJIM"> 
+INSERT INTO COMBOOKMARK (
+    CBOOK_ID,
+    USER_ID,
+    USERNAME,
+    COMPNAME,
+    BIRTH,
+    PHONE_NUMBER,
+    TITLE         
+) VALUES (
+   ( (SELECT NVL(MAX(CBOOK_ID),0)+1 FROM COMBOOKMARK )),
+   #{user_id},
+   #{username},
+   #{compname},
+   #{birth},
+   #{phone_number},
+   #{title}
+)
+  </insert>
+ 
+   <!-- 북마크 --> 
+  <update id="toggleJJIM">
+    UPDATE COMBOOKMARK  
+    SET  JJIM = CASE
+         WHEN JJIM = 'OFF' THEN 'ON'  
+         ELSE 'OFF' END  ,
+         S_DATE = SYSDATE  
+         WHERE USER_ID = #{arg0} 
+         AND TITLE = #{arg1}  
+  </update>
+  
+  <!-- 북마크 --> 
+  <select id="getJJIM">
+  SELECT CBOOK_ID, USER_ID, COMPNAME, USERNAME, BIRTH, PHONE_NUMBER, TITLE,
+         BOOKMARK, S_DATE ,JJIM
+  FROM   COMBOOKMARK
+  WHERE  USER_ID = #{arg0} 
+  AND    TITLE = #{arg1}
+  </select>
+  
+  <!-- 북마크 --> 
+  <select id="JJIMList">
+  SELECT CBOOK_ID, USER_ID, COMPNAME, USERNAME, BIRTH, PHONE_NUMBER, TITLE,
+         BOOKMARK, S_DATE,JJIM
+  FROM   COMBOOKMARK
+  WHERE  USER_ID = #{arg0} 
+  AND    JJIM = 'ON'
+  </select>
+
+ <!-- 북마크 상태 체크 --> 
+  <select id="JJIMLSTAT">
+  SELECT JJIM
+  FROM   COMBOOKMARK
+  WHERE  USER_ID = #{user_id}
+   AND   TITLE = #{title}
+   AND   USERNAME = #{username}   
+  </select>
+
+  <!-- 북마크 --> 
+ <select id="isJJIM">
+  SELECT JJIM
+  FROM   COMBOOKMARK
+  WHERE  USER_ID = #{arg0} 
+  AND    TITLE = #{arg1}
+  </select>
+  
+  <!-- ======================픽톡관련===================== -->  
+  <!-- 기업 사용자 확인 -->
+  <select id="checkCompanyUser">
+    SELECT COUNT(*) 
+    FROM COMPANY_USERS 
+    WHERE USER_ID = #{user_id}
+  </select>
+  
+  <!-- 모든 기업 조회 -->
+  <select id="getAllCompany">
+    SELECT COMPNAME
+    FROM COMPANY_USERS
+  </select>
+  
+  <!-- 기업 평점 업데이트 -->
+  <update id="updateAverage">
+    UPDATE COMPANY c
+    SET AVERAGE = (
+        SELECT NVL(AVG(RATING), 0)
+        FROM COMPANY_REVIEWS cr
+        WHERE cr.COMPNAME = c.COMPNAME
+    )
+    WHERE EXISTS (
+        SELECT 1 
+        FROM COMPANY_REVIEWS cr 
+        WHERE cr.COMPNAME = c.COMPNAME
+    )
+	</update>
+	
+	<!-- 평균 점수 조회 -->
+	<select id="getCompanyAverage">
+    SELECT average
+    FROM COMPANY
+    WHERE compname = #{compname}
+	</select>
+</mapper>
+
+
+

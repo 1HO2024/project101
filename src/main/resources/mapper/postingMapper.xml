@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.board.posting.mapper.PostingMapper">  
+   
+  <select id="getmainList" >
+   
+   SELECT
+	    APLNUM,
+	    POST_ID,
+	    USER_ID,
+	    COMPNAME,
+	    RECRUITNUM,
+	    TO_CHAR(DEADLINE,'YYYY-MM-DD') DEADLINE,
+	    DUTY,
+	    CAREER,
+	    EDU,
+	    SKILLS,
+	    LICENSES,
+	    WORKSPACE,
+	    SALARY,
+	    DEPARTMENT,
+	    HIT
+	FROM
+	    JOBPOSTING 
+	ORDER BY
+	     APLNUM DESC 
+  </select>
+  
+  <select id="getmain">
+   SELECT
+	    APLNUM,
+	    POST_ID,
+	    USER_ID,
+	    COMPNAME,
+	    RECRUITNUM,
+	    TO_CHAR(DEADLINE,'YYYY-MM-DD') DEADLINE,
+	    DUTY,
+	    CAREER,
+	    EDU,
+	    SKILLS,
+	    LICENSES,
+	    WORKSPACE,
+	    SALARY,
+	    DEPARTMENT,
+	    HIT
+	FROM
+	    JOBPOSTING  
+	WHERE  APLNUM=#{aplnum}
+  </select>
+  
+  <insert id="insertposting">
+  INSERT INTO jobposting (APLNUM ,POST_ID 
+                         ,RECRUITNUM,DEADLINE 
+                         ,DUTY,WORKSPACE 
+                         ,SALARY,DEPARTMENT
+                         ,CAREER,EDU
+                         ,SKILLS,LICENSES) 
+  VALUES ( (SELECT NVL(MAX(APLNUM),0)+1 FROM JOBPOSTING ) ,#{post_id} 
+            ,#{recruitnum} ,#{deadline} 
+            ,#{duty} ,#{workspace} 
+            ,#{salary} ,#{department}
+            ,#{edu},#{career}
+            ,#{skills},#{licenses})
+  
+  </insert>
+  
+  <delete id="deleteposting">
+  DELETE FROM JOBPOSTING
+  WHERE APLNUM = #{aplnum}
+  </delete>
+  
+  <update id="updateposting">
+    UPDATE 
+           JOBPOSTING
+     SET    
+           POST_ID     = #{post_id}
+          ,RECRUITNUM  = #{recruitnum}
+          ,WORKSPACE   = #{workspace} 
+          ,DEADLINE    = #{deadline}
+          ,SALARY      = #{salary}
+          ,DEPARTMENT  = #{department}
+          ,SKILLS      = #{skills}
+          ,LICENSES    = #{licenses}
+          ,CAREER      = #{career}
+          ,EDU         = #{edu}
+          ,DUTY        = #{duty}
+    WHERE 
+         APLNUM       = #{aplnum}
+
+  </update>
+  
+  <update id="plushit">
+   UPDATE JOBPOSTING
+      SET HIT = HIT+1
+      WHERE APLNUM= #{aplnum}
+  </update>
+  
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.board.individual.mapper.IndividualMapper">
+  <!-- 로그인 -->
+  <select id="login" >
+	SELECT USER_ID, USERNAME, EMAIL, PASSWORD, PHONE_NUMBER, ADDRESS, J_DATE
+	FROM   USERS
+	WHERE  USER_ID  = #{param1,jdbcType=VARCHAR}
+    AND    PASSWORD = #{param2,jdbcType=VARCHAR}
+   </select>
+   
+  <!-- 마이페이지_회원정보 --> 
+  <select id="getUserById" parameterType="String" resultType="com.board.individual.vo.IndividualVo">
+    SELECT USER_ID, USERNAME, EMAIL, PASSWORD, PHONE_NUMBER, ADDRESS, J_DATE
+    FROM   USERS
+    WHERE  USER_ID = #{user_id}
+  </select>
+  
+  <!-- 회원가입 -->
+  <insert id="signup">
+  	INSERT INTO USERS (
+	    USER_ID,
+	    USERNAME,
+	    EMAIL,
+	    PASSWORD,
+	    PHONE_NUMBER,
+	    ADDRESS
+    ) VALUES (
+        #{user_id, jdbcType=VARCHAR}, 
+        #{username, jdbcType=VARCHAR}, 
+        #{email, jdbcType=VARCHAR}, 
+        #{password, jdbcType=VARCHAR}, 
+        #{phone_number, jdbcType=VARCHAR}, 
+        #{address, jdbcType=VARCHAR}
+    )
+  </insert>
+  
+  <!-- ID 중복 확인 쿼리 -->
+  <select id="idDupCheck">
+     SELECT 
+       USER_ID 
+    FROM 
+       USERS 
+    WHERE 
+       USER_ID = #{user_id}
+    UNION 
+    SELECT 
+       USER_ID 
+      FROM 
+         COMPANY_USERS 
+      WHERE 
+         USER_ID = #{user_id}
+  </select>
+  
+  <!-- 이메일 확인 쿼리 -->
+  <select id="emailDupCheck">
+   SELECT 
+      EMAIL FROM USERS WHERE EMAIL = #{email} 
+   UNION 
+   SELECT 
+      EMAIL FROM COMPANY_USERS WHERE EMAIL = #{email}
+  </select>
+  
+  <!-- 마이페이지_회원정보수정 -->
+  <update id="update">
+    UPDATE USERS
+    SET    PASSWORD     = #{password},
+           USERNAME     = #{username},
+           EMAIL        = #{email},
+           ADDRESS      = #{address},
+           PHONE_NUMBER = #{phone_number}
+    WHERE  USER_ID    = #{user_id}
+  </update>
+  
+  <!-- 마이페이지_회원탈퇴 -->
+  <delete id="delete">
+    DELETE FROM USERS
+    WHERE  USER_ID = #{user_id, jdbcType=VARCHAR}
+  </delete>
+  
+  <!-- 이력서 등록 -->
+  <insert id="insert">
+  
+  INSERT INTO RESUMES 
+  (TITLE, USER_ID, USERNAME, EMAIL, PHONE_NUMBER, ADDRESS, BIRTH, 
+   GENDER, CAREER, CAREERS, EDUWHEN, EDUWHER, EDU, MAJOR,  
+   LICENSES, LICENSES1, LICENSES2, LICENSES3, PUBLISHER1, PUBLISHER2, PUBLISHER3, 
+   PASSDATE1, PASSDATE2, PASSDATE3, SKILLS1, 
+   PORTFOLIO, SELFINTRO, PHOTO
+ ) VALUES ( 
+  #{title}, #{user_id}, #{username}, #{email}, #{phone_number}, #{address}, #{birth},
+  #{gender}, #{career}, #{careers}, #{eduwhen}, #{eduwher}, #{edu}, #{major},  
+  #{licenses}, #{licenses1}, #{licenses2}, #{licenses3}, #{publisher1}, #{publisher2}, #{publisher3},
+  #{passdate1}, #{passdate2}, #{passdate3}, #{skills1}, 
+  #{portfolioPath}, #{selfintro}, #{photoPath})
+  </insert>
+  
+  
+  <!-- 개인 - 공고추천 -->
+   <select id="recommendList">
+    SELECT 
+       JP.* 
+   FROM 
+       JOBPOSTING JP
+   JOIN 
+       RESUMES RE ON RE.USER_ID = #{user_id}
+   WHERE 
+       JP.LICENSES IS NOT NULL
+    AND (
+        (RE.LICENSES1 IS NOT NULL AND REGEXP_LIKE(JP.LICENSES, '(^|[ ,;])' || RE.LICENSES1 || '([ ,;]|$)'))
+        OR (RE.LICENSES2 IS NOT NULL AND REGEXP_LIKE(JP.LICENSES, '(^|[ ,;])' || RE.LICENSES2 || '([ ,;]|$)'))
+        OR (RE.LICENSES3 IS NOT NULL AND REGEXP_LIKE(JP.LICENSES, '(^|[ ,;])' || RE.LICENSES3 || '([ ,;]|$)'))
+    )
+    OFFSET #{start} ROWS FETCH NEXT #{size} ROWS ONLY
+    </select>
+    
+    <select id="getTotalRecommend">
+  	SELECT 
+	    COUNT(*) 
+	FROM 
+	    JOBPOSTING JP
+	JOIN 
+	    RESUMES RE ON RE.USER_ID = #{user_id}
+	WHERE 
+	    JP.LICENSES IS NOT NULL
+	AND (
+	    (RE.LICENSES1 IS NOT NULL AND REGEXP_LIKE(JP.LICENSES, '(^|[ ,;])' || RE.LICENSES1 || '([ ,;]|$)'))
+	    OR (RE.LICENSES2 IS NOT NULL AND REGEXP_LIKE(JP.LICENSES, '(^|[ ,;])' || RE.LICENSES2 || '([ ,;]|$)'))
+	    OR (RE.LICENSES3 IS NOT NULL AND REGEXP_LIKE(JP.LICENSES, '(^|[ ,;])' || RE.LICENSES3 || '([ ,;]|$)'))
+	)
+  	</select>
+  	
+  <!-- title 가져오기-->
+  <select id="getTitlesByUSerId" resultType="string" parameterType="string">
+    SELECT TITLE 
+    FROM   RESUMES
+    WHERE  USER_ID = #{user_id}
+  </select>
+  
+  <!-- 입사 지원서 제출  -->
+  <insert id="insert2">
+  	INSERT INTO APPLICATIONS (
+    APP_ID,
+    USER_ID,
+    APLNUM,
+    POST_ID,
+    TITLE,
+    LOCATION
+	) VALUES (
+ 	(SELECT NVL(MAX(app_id),0)+1 FROM applications ),
+    #{user_id},
+    #{aplnum},
+    #{post_id},
+    #{title},
+    #{location}     
+	)
+  </insert>
+  		
+  <!-- 입사 지원서 제출 확인 -->
+  <select id="checkappex">
+    SELECT * FROM APPLICATIONS
+    WHERE USER_ID = #{arg0}
+    AND   APLNUM=#{arg1}
+  </select>
+  	
+  <!-- 제출한 이력서_목록 --> 
+  <select id="getappList" >
+   	SELECT APP_ID, USER_ID, APLNUM, POST_ID, REPLACE(TITLE, ' ', '') AS TITLE, APP_DATE, PICTURE, LOCATION, RESULT
+	FROM  APPLICATIONS 
+	WHERE USER_ID = #{user_id}
+	ORDER BY APP_ID ASC 
+  </select>
+  
+  <!-- 등록한 이력서_목록 --> 
+  <select id="getreList" >
+   	SELECT USERNAME, USER_ID, REPLACE(TITLE, ' ', '') AS TITLE, LICENSES, SKILLS1, C_DATE, U_DATE
+	FROM  RESUMES
+	WHERE USER_ID = #{user_id}
+	ORDER BY C_DATE ASC 
+	OFFSET #{start} ROWS FETCH NEXT #{size} ROWS ONLY
+  </select>
+  
+  <select id="getReListCount">
+    SELECT COUNT(*)
+    FROM  RESUMES
+    WHERE USER_ID = #{user_id}
+  </select>
+  
+  <select id="getAppListCount">
+   SELECT COUNT(*)
+    FROM  APPLICATIONS
+    WHERE USER_ID = #{user_id}
+  </select>
+    
+
+  <!-- 이력서_상세페이지 -->
+  <select id="getresumeList">
+    SELECT REPLACE(TITLE, ' ', '') AS TITLE, USER_ID, USERNAME, EMAIL, PHONE_NUMBER, ADDRESS, BIRTH, GENDER, NUMBER2, CAREER,
+          CAREERS, EDUWHEN, EDUWHER, EDU, MAJOR, LICENSES1, LICENSES2, LICENSES3, PUBLISHER1,
+          PUBLISHER2, PUBLISHER3, PASSDATE1, PASSDATE2, PASSDATE3, SKILLS1, SKILLS2, SKILLS3,
+          SKILLS4, SKILLS5, PORTFOLIO AS portfolioPath, SELFINTRO, PHOTO AS photoPath
+    FROM  RESUMES
+    WHERE REPLACE(TITLE, ' ', '')= #{title}
+  </select>
+
+  <!-- 등록 이력서 수정 수정됨  -->
+  <update id="update2">
+    UPDATE        RESUMES
+    SET           
+    GENDER =       #{gender} ,
+    CAREER =       #{career } ,
+    CAREERS =      #{careers },
+    EDUWHEN =      #{eduwhen} ,
+    EDUWHER =      #{eduwher} ,
+    EDU =   	   #{edu},
+    MAJOR =        #{major},
+    LICENSES =     #{licenses},
+    LICENSES1 =    #{licenses1},
+    LICENSES2 =    #{licenses2}, 
+    LICENSES3 =    #{licenses3},
+    PUBLISHER1 =   #{publisher1} ,
+    PUBLISHER2 =   #{publisher2} ,
+    PUBLISHER3 =   #{publisher3} ,
+    PASSDATE1 =    #{passdate1} ,
+    PASSDATE2 =    #{passdate2} ,
+    PASSDATE3 =    #{passdate3} ,
+    SKILLS1 =      #{skills1}  , 
+    PORTFOLIO =    #{portfolioPath},
+    SELFINTRO =    #{selfintro},
+    PHOTO	  =    #{photoPath} 
+    WHERE    REPLACE(TITLE, ' ', '')= #{title}
+     AND     USER_ID=#{user_id}             
+  </update>
+
+  <!-- 북마크 삭제 수정됨 -->
+  <delete id="delbookmark">
+    DELETE FROM COMBOOKMARK
+    WHERE REPLACE(TITLE, ' ', '')= #{title}
+  </delete>
+
+
+  <!-- 이력서 제출여부 확인 수정됨-->
+  <select id="getsubres">
+	SELECT * FROM APPLICATIONS
+	WHERE REPLACE(TITLE, ' ', '')= #{arg1} 
+    AND   USER_ID=#{arg0}
+  </select>
+
+
+  <!--  등록 이력서 제목 중복확인  -->
+  <select id="checkTitleExists">
+	SELECT * FROM RESUMES
+	WHERE user_id = #{arg0} AND title = #{arg1}
+  </select>
+
+	
+  <!-- 등록 이력서 삭제  수정됨 -->
+  <delete id="deleteres">	
+	DELETE FROM RESUMES
+	WHERE  REPLACE(TITLE, ' ', '')= #{title}
+  </delete>  
+	
+	
+  <!--제출한 이력서 삭제 수정됨 -->
+  <delete id="delapplist">	
+	DELETE FROM APPLICATIONS
+	WHERE   APP_ID= #{app_id}
+  </delete>  
+	
+  <!-- PICK ME -->
+  <select id="getallUserById">
+    SELECT * 
+    FROM   RESUMES 
+    WHERE  USER_ID = #{user_id} 
+    AND    ROWNUM = 1
+  </select>
+   
+  <select id="getBookmarksByUsername" >
+    SELECT DISTINCT * 
+    FROM COMBOOKMARK
+    WHERE USERNAME = #{vo.username}
+    AND   (BIRTH = #{vo.birth} OR #{vo.birth} IS NULL)
+    AND   (PHONE_NUMBER = #{vo.phone_number} OR #{vo.phone_number} IS NULL)
+    AND   BOOKMARK = 'ON'
+    OFFSET #{start} ROWS FETCH NEXT #{size} ROWS ONLY
+  </select>
+  
+  <select id="getBookmarksCount">
+    SELECT COUNT(*) 
+    FROM   COMBOOKMARK
+    WHERE  USERNAME = #{vo.username}
+    AND   (BIRTH = #{vo.birth} OR #{vo.birth} IS NULL)
+    AND   (PHONE_NUMBER = #{vo.phone_number} OR #{vo.phone_number} IS NULL)
+    AND    BOOKMARK = 'ON'
+  </select>
+
+  <select id="getJobPostingsByUserId">
+    SELECT * FROM JOBPOSTING
+    WHERE USER_ID= #{arg1}
+  </select>
+  
+   <!-- 메시지 불러오기-->
+    
+    <select id="getMessages">
+    SELECT * FROM MESSAGES
+    WHERE RECEIVER_USERID = #{user_id}
+    ORDER BY MESSAGE_ID DESC
+    </select>
+    
+    
+     <!-- 메시지 중복 확인-->
+    
+    <select id="checkdupmes">
+    SELECT MCONTENT FROM MESSAGES
+    WHERE SENDER_COMPID = 'ADMIN'
+    AND   SENDER_COMPNAME ='픽미'
+    AND   RECEIVER_USERID = #{user_id}
+    AND   MCONTENT = '픽미의 새로운 공고추천!!'||#{compname}
+    ORDER BY STIME DESC 
+    </select>
+    
+    
+    <!-- 메시지 보내기 공고추천 -->
+   <insert id="sendAIMassege">
+    INSERT INTO MESSAGES (
+    MESSAGE_ID,
+    SENDER_COMPID,
+    SENDER_COMPNAME,
+    RECEIVER_USERID,
+    MCONTENT,
+    DIVISION
+   ) VALUES (
+   ( SELECT NVL(MAX(MESSAGE_ID),0)+1 FROM MESSAGES ),
+   'ADMIN',
+   '픽미',
+   #{user_id},
+   '픽미의 새로운 공고추천!!'||#{compname},
+   '공고추천'
+   )
+</insert>
+
+
+<!-- jobposting 으로 기업정보 가져오기 -->
+<select id="getCUserById">
+    SELECT * FROM JOBPOSTING
+    WHERE POST_ID =#{post_id}
+</select>
+
+<!-- 메시지 보내기 이력서제출 -->
+<insert id="sendPostappMassege">
+INSERT INTO MESSAGES (
+    MESSAGE_ID,
+    SENDER_USERID,
+    SENDER_USERNAME,
+    RECEIVER_COMPID,
+    RECEIVER_COMPNAME,
+    MCONTENT,
+    DIVISION
+   ) VALUES (
+   ( SELECT NVL(MAX(MESSAGE_ID),0)+1 FROM MESSAGES ),
+   #{user_id},
+   #{username},
+   #{compuser_id},
+   #{compname},
+   #{username}||'님이'||#{post_id}||'공고 에 지원하셨습니다.',
+   '공고 지원'
+   )
+   </insert> 
+   
+<!-- 메시지 보내기 이력서 취소 -->
+<insert id="sendPostappMassege2">
+INSERT INTO MESSAGES (
+    MESSAGE_ID,
+    SENDER_USERID,
+    SENDER_USERNAME,
+    RECEIVER_COMPID,
+    RECEIVER_COMPNAME,
+    MCONTENT,
+    DIVISION
+   ) VALUES (
+   ( SELECT NVL(MAX(MESSAGE_ID),0)+1 FROM MESSAGES ),
+   #{user_id},
+   #{username},
+   #{compuser_id},
+   #{compname},
+   #{username}||'님이'||#{post_id}||'공고 에 지원취소하셨습니다.',
+   '공고 지원'
+   )
+   </insert> 
+
+<!--  공고 스크랩 -->
+
+    <select id= "getScrap">
+SELECT * FROM USERBOOKMARK
+   WHERE  USER_ID = #{user_id} 
+   AND    POST_ID = #{post_id}
+
+</select>
+
+<update id="toggleScrap">
+    UPDATE USERBOOKMARK  
+    SET  JJIM = CASE
+         WHEN JJIM = 'OFF' THEN 'ON'  
+         ELSE 'OFF' END  ,
+         S_DATE = SYSDATE  
+    WHERE  USER_ID = #{user_id} 
+    AND    POST_ID = #{post_id}
+  </update>
+
+
+  <select id="IsScrap">
+  SELECT JJIM
+  FROM   USERBOOKMARK
+  WHERE  USER_ID = #{user_id} 
+  AND    POST_ID = #{post_id}
+  </select>
+  
+  <select id="IsOnScrap">
+  SELECT JJIM
+  FROM   USERBOOKMARK
+  WHERE  USER_ID = #{arg0} 
+  AND    POST_ID = #{arg1}
+  AND    COMPNAME = #{arg2}
+  </select> 
+   
+<insert id ="saveScrap">
+	INSERT INTO USERBOOKMARK (
+    	UBOOK_ID,
+    	USER_ID,
+    	COMPNAME,
+    	POST_ID,
+    	DEADLINE,
+    	JJIM
+	) VALUES (
+	    (SELECT NVL(MAX(UBOOK_ID),0)+1 FROM USERBOOKMARK ),
+	   #{user_id},
+	   #{compname},
+	   #{post_id},
+	   TO_DATE(#{deadline}, 'YYYY-MM-DD HH24:MI:SS'),
+	   'ON'
+	   )
+	</insert>
+	
+	 <select id="ScrapList">
+  SELECT *
+  FROM   USERBOOKMARK
+  WHERE  USER_ID = #{user_id} 
+  AND    JJIM = 'ON'
+  </select>    
+  
+  <select id="getalpnum">
+  SELECT *
+  FROM   JOBPOSTING
+  WHERE  COMPNAME = #{arg0} 
+  AND    POST_ID = #{arg1}
+  AND    DEADLINE = TO_DATE(#{arg2}, 'YYYY-MM-DD HH24:MI:SS')
+  </select>
+  
+  <!-- 개인 사용자 확인 -->
+    <select id="checkIndividualUser">
+        SELECT COUNT(*) 
+        FROM USERS 
+        WHERE USER_ID = #{user_id}
+    </select>  
+</mapper>
+
+
+
+
+
+

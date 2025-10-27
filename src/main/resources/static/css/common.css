@@ -1,0 +1,957 @@
+@charset "UTF-8";
+
+/* -----------------------------------  공통 --------------------------------------*/
+
+body {
+    width: 100%;
+    min-width:1320px;
+    margin: 0 auto;
+    overflow-x: auto;
+    overflow-y: scroll;
+}
+
+/* span 스타일 */
+.red  { color:red; }
+#red  { color:red; }
+
+/* --------------------------------  메인화면 ------------------------------------*/
+/* Pagination styling */
+.pagination {
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
+}
+
+.pagination a {
+    margin: 0 5px;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #333;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.pagination a:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
+/* Active page number styling (if possible to apply) */
+.pagination a.active {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Job card grid styling */
+.legnav {
+    display: flex; /* Flexbox 사용 */
+    flex-wrap: wrap; /* 카드들이 여러 줄로 배치되도록 설정 */
+    justify-content: center; /* 가운데 정렬 */
+    gap: 20px; /* 카드 간의 간격 */
+    padding: 20px;
+    margin: 0 auto; /* 중앙 정렬 */
+    width: 1200px; /* 고정된 너비 */
+}
+
+.job-card {
+    width: 250px; /* 고정된 너비 */
+    height: 250px; /* 고정된 높이 */
+    border: 1px solid #e0e0e0; 
+    border-radius: 10px; 
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+    box-sizing: border-box; 
+    background-color: #ffffff; 
+    transition: transform 0.3s, box-shadow 0.3s; 
+    margin-top: 5px;
+}
+
+.job-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); 
+}
+
+.job-card img {
+    width: 80%;  
+    height: 40%;     
+    max-height: 100px;    
+    object-fit: contain; 
+    border-radius: 10px 10px 0 0; 
+    margin-top: 18px;
+} 
+
+.company-name {
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+    margin: 10px 0;
+}
+
+.description {
+    color: #777;
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+.hit-count {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+}
+/* --------------------------  채용공고 페이지(list)  -------------------------------*/
+.div3 {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    background-color: #F7F7F7;
+    
+    	  main {
+		  padding: 40px;
+		  background-color: #ffffff;
+		  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+		  margin: 20px auto;
+		  width: 90%;
+		  max-width: 1100px;
+		  border-radius: 10px; 
+		}
+				main h2 {
+		  font-size: 24px;
+		  color: #1f2c63;
+		  margin-bottom: 20px;
+		  text-align: center;
+		  font-weight: bold;
+		}
+		
+		  /* select */
+  select {
+    width: 150px;
+    padding: 5px;
+  }
+		
+		
+      /* 테이블 스타일 */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+		table th {
+		  font-size: 14pt;
+		  background-color: #CBD5F5;
+		  font-weight: bold;
+		  color: #333;
+		  padding: 12px;
+		  text-align: center;
+		}
+		
+ /* 행 hover 효과 */
+tr:hover {
+    background-color: #f2f2f2;    
+}
+/* 테이블 행 스타일 */
+		
+  tr{
+  text-align :center;
+  } 
+  
+/* 테이블 데이터 셀 스타일 */
+  td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: top;
+    text-align: center;
+  }
+ .tabletr {
+ height:100px;
+ }
+  /* 폰트 스타일 */
+
+  .bold a{
+    font-weight: bold !important;
+    font-size: 20px !important;
+    color: black !important;
+    text-decoration: none !important;
+}
+  .bold a:hover {
+	text-decoration: underline;
+}
+  /* 링크를 클릭해본 상태 */
+  .bold a:visited {
+    background-color: #F7F7F7;
+    font-weight: normal !important;
+    font-size: 17px !important;
+    color: silver !important;
+    text-decoration: none !important;
+}
+
+  /* 읽은 공고 스타일 */
+.read-post {
+    font-weight: normal !important;
+    color: gray !important;
+}
+
+  /* 이모티콘 스타일 */
+  .icon {
+    margin-right: 5px;
+  }
+
+  .location-icon::before { content: "🌍"; }
+  .career-icon::before { content: "💼"; }
+  .edu-icon::before { content: "🎓"; }
+  
+  /* 마감시간 스타일*/
+  #time-left {
+    font-family: 'Arial Black', 'Impact', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    color: #FF5733; 
+  }
+  .job-row {
+  background-color: white;
+  }
+}
+  /* ------------------------  채용공고 상세 페이지(view)  ------------------------*/
+ .div7 {
+   font-family: 'Arial', 'Impact', sans-serif;
+   display: flex;
+   flex-wrap: wrap; 
+   justify-content: center; 
+   gap: 10px;
+   background-color: #F7F7F7;
+   
+		  main {
+		  padding: 40px;
+		  background-color: #ffffff;
+		  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+		  margin: 20px auto;
+		  width: 90%;
+		  max-width: 1100px;
+		  border-radius: 10px; 
+		}
+		.subtitle{
+  font-size: 20px;
+  font-weight: bold;
+  color: black;
+}
+		table {
+		  margin-bottom:40px;
+		 } 
+		h2 {
+		  font-size: 24px;
+		  color: #1f2c63;
+		  margin-bottom: 20px;
+		  font-weight: bold;
+		}
+		
+		table {
+		  width: 100%;
+		  border-collapse: collapse;
+		  
+		}
+		
+		table th, table td {
+		  padding: 12px;
+		  text-align: left;
+		  
+		}
+		
+		table th {
+		  font-size: 13pt;
+		  font-weight: bold;
+		  color: #a9a9a9;
+		  width:15%
+		}
+		td:nth-child(1) {
+		  width:15%
+		}
+		td:nth-child(2) {
+		  width:35%
+		}
+		td:nth-child(3) {
+		  width:15%
+		}
+		td:nth-child(4) {
+		  width:35%
+		}
+
+  /* 회색 선 */
+.border-bottom {
+  border-bottom: 3px solid #ddd;
+}
+.border-top {
+  border-top: 3px solid #ddd;
+}
+  /* 버튼 정렬*/
+.button {
+    display: flex;
+    justify-content: center; /* 버튼들을 가운데 정렬 */
+    gap: 10px; /* 버튼 간격 조절 */
+    margin-top: 20px; /* 상단 여백 */	
+}
+  /* 회사명 */
+.compname, .type {
+	font-size: 20px;
+	font-weight: bold;
+}
+  /* 공고명 */
+.post_id, .csp_title {
+	font-size: 40px;
+	font-weight: bold;
+}
+  /* 댓글 */
+    #comments {
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        background-color: #f9f9f9;
+    }
+
+    .comment {
+        border-bottom: 1px solid #ddd;
+        padding: 10px 0;
+    }
+
+    .comment:last-child {
+        border-bottom: none; /* 마지막 댓글의 경계선 제거 */
+    }
+
+    .comment strong {
+        color: #333;
+    }
+
+    #commentInput {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+
+    #addCommentBtn {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    #addCommentBtn:hover {
+        background-color: #0056b3; /* 버튼 호버 효과 */
+    }
+}   
+/* --------------------------  목록 페이지(list)  -------------------------------*/
+.div4 {
+   display: flex;
+   flex-wrap: wrap; 
+   justify-content: center; 
+   gap: 10px;
+   background-color: #F7F7F7;
+   
+		  main {
+		  padding: 40px;
+		  background-color: #ffffff;
+		  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+		  margin: 20px auto;
+		  width: 90%;
+		  max-width: 1100px;
+		  border-radius: 10px; 
+		}
+		
+		main h2 {
+		  font-size: 24px;
+		  color: #1f2c63;
+		  margin-bottom: 20px;
+		  text-align: center;
+		  font-weight: bold;
+		}
+	
+		table {
+		  width: 100%;
+		  border-collapse: collapse;
+		  table-layout: fixed;
+		}
+		
+		table tr {
+		  border-bottom: 1px solid #ddd;
+		}
+		
+		table th, table td {
+		  padding: 12px;
+		  text-align: center;
+		}
+		table td {
+	      font-size: 12pt;
+          white-space: nowrap; /* 줄 바꿈 방지 */
+          overflow: hidden; /* 넘치는 내용 숨기기 */
+          text-overflow: ellipsis; /* 넘치는 내용에 ... 표시 */
+		}
+		table th {
+		  font-size: 14pt;
+		  background-color: #CBD5F5;
+		  font-weight: bold;
+		  color: #333;
+		}
+		
+		table td a {
+		  color: black;
+	      font-weight: bold;
+		  text-decoration: none;
+		}
+
+		table td a:hover {
+		  text-decoration: underline;
+		}
+		
+		#bookmark{ width:30px;
+             height: auto; 
+             cursor: pointer;
+ }
+ /* 행 hover 효과 */
+tr:hover {
+    background-color: #f2f2f2;    
+} 
+
+/* PICKME 그림 */
+input[type=image] {
+	width: 30px; 
+	height: 25px;	
+}
+}
+
+
+/* --------------------------  상세 페이지(view)  -------------------------------*/
+.div5 {
+   display: flex;
+   flex-wrap: wrap; 
+   justify-content: center; 
+   gap: 10px;
+   background-color: #F7F7F7;
+   
+		  main {
+		  padding: 40px;
+		  background-color: #ffffff;
+		  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+		  margin: 20px auto;
+		  width: 90%;
+		  max-width: 1100px;
+		  border-radius: 10px; 
+		}
+		
+		main h2 {
+		  font-size: 24px;
+		  color: #1f2c63;
+		  margin-bottom: 20px;
+		  font-weight: bold;
+		}
+		
+		table {
+		  width: 100%;
+		  border-collapse: collapse;
+		  
+		}
+		
+		table tr {
+		  border-bottom: 1px solid #ddd;
+		}
+		
+		table th, table td {
+		  padding: 12px;
+		  text-align: center;
+		}
+		
+		table th {
+		  font-size: 13pt;
+		  font-weight: bold;
+		  color: #333;
+		}
+}
+
+/* --------------------------  등록, 수정 (write, update) -------------------------------*/
+.div6 {
+  display: flex;
+  flex-wrap: wrap; 
+  justify-content: center;
+  gap: 10px;
+  background-color: #F7F7F7;
+
+
+/* 메인 섹션 */
+main {
+  padding: 40px;
+  background-color: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+  width: 90%;
+  max-width: 1100px;
+  border-radius: 10px;
+}
+
+/* 헤더 스타일 */
+main h2 {
+  font-size: 24px;
+  color: #1f2c63;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* 테이블 스타일 */
+table {
+  width: 100%;
+  border-spacing: 10px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+table tr {
+  border-bottom: 1px solid #ddd;
+}
+
+table th, table td {
+  padding: 12px;
+  text-align: center;
+}
+
+table th {
+  font-size: 13pt;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 입력 필드 스타일 */
+textarea, input[type=text], input[type=number], input[type=datetime-local], input[type=email], input[type=password], select {
+  width: 100%;
+  height: 40px;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+/* textarea 크기 조정 */
+.textarea1 {
+  height: 50px;
+}
+
+.textarea2 {
+  height: 200px;
+  resize: none;
+}
+.space {
+   background-color: #F7F7F7;
+}
+
+/* readonly */
+.main input[readonly] {
+  background-color: #e9e9e9;
+}
+}
+/* ------------------------  이력서등록(register)  ------------------------*/
+ .div8 {
+   font-family: 'Arial', 'Impact', sans-serif;
+   display: flex;
+   flex-wrap: wrap; 
+   justify-content: center; 
+   gap: 10px;
+   background-color: #F7F7F7;
+   
+		  main {
+		  padding: 40px;
+		  background-color: #ffffff;
+		  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+		  margin: 20px auto;
+		  width: 90%;
+		  max-width: 1100px;
+		  border-radius: 10px; 
+		}
+
+		table {
+		  margin-bottom:40px;
+		 } 
+		h2 {
+		  font-size: 24px;
+		  color: #1f2c63;
+		  margin-bottom: 20px;
+		  font-weight: bold;
+		}
+		
+		table {
+		  width: 100%;
+		  border-collapse: collapse;
+		  
+		}
+		
+		table th, table td {
+		  padding: 12px;
+		  text-align: left;
+		}
+		
+		table th {
+		  font-size: 13pt;
+		  font-weight: bold;
+		  color: #a9a9a9;
+		  width:15%
+		}
+		
+.subtitle{
+  font-size: 20px;
+  font-weight: bold;
+  color: black;
+}
+.select-field {
+	width:200px;
+}
+td:nth-child(2) {
+	width:100%
+}
+  /* 버튼 정렬*/
+.endbutton {
+    display: flex;
+    justify-content: center; /* 버튼들을 가운데 정렬 */
+    gap: 10px; /* 버튼 간격 조절 */	
+}
+#checkForm {
+	display: inline-block;
+	padding: 0.375rem 0.75rem; /* 버튼의 상하, 좌우 패딩 */
+    font-size: 1rem; /* 글자 크ta기 */
+    font-weight: 400; /* 글자 두께 */
+    line-height: 1.5; /* 줄 높이 */
+    text-align: center; /* 텍스트 정렬 */
+	border: 1px solid transparent; /* 기본 테두리 설정 */
+    border-radius: 0.25rem; /* 모서리 둥글게 */
+	color: #007bff; /* 글자 색상 */
+    background-color: transparent; /* 배경 색상 */
+    border-color: #007bff; /* 테두리 색상 */
+}
+#checkForm:hover {
+	color: white; /* 호버 시 글자 색상 */
+    background-color: #007bff; /* 호버 시 배경 색상 */
+    border-color: #007bff; /* 호버 시 테두리 색상 */
+}
+#goList {
+	display: inline-block;
+	padding: 0.375rem 0.75rem; /* 버튼의 상하, 좌우 패딩 */
+    font-size: 1rem; /* 글자 크기 */
+    font-weight: 400; /* 글자 두께 */
+    line-height: 1.5; /* 줄 높이 */
+    text-align: center; /* 텍스트 정렬 */
+	border: 1px solid transparent; /* 기본 테두리 설정 */
+    border-radius: 0.25rem; /* 모서리 둥글게 */
+	color: #28a745; /* 글자 색상 */
+    background-color: transparent; /* 배경 색상 */
+    border-color: #28a745; /* 테두리 색상 */
+}
+#goList:hover {
+	color: white; /* 호버 시 글자 색상 */
+    background-color: #28a745; /* 호버 시 배경 색상 */
+    border-color: #28a745; /* 호버 시 테두리 색상 */
+}
+}
+
+/* 인적사항 테이블*/
+#info td {
+	padding: 6px !important;
+}
+#info td:nth-child(1) {
+	width:15%;
+}
+#info td:nth-child(2) {
+	width:0%;
+}
+#info td:nth-child(3) {
+	width:15%;
+}
+#info td:nth-child(4) {
+	width:65%;
+}    
+
+/* 학력사항 테이블*/
+#edu td:nth-child(2) {
+	width:30%;
+}
+#edu td:nth-child(3) {
+	width:30%;
+}
+#edu td:nth-child(4) {
+	width:40%;
+}
+
+/* 자격증 테이블*/
+#license td {
+	padding: 6px !important;
+}
+
+#license td:nth-child(2) {
+	width:40%;
+}
+#license td:nth-child(3) {
+	width:40%;
+}
+#license td:nth-child(4) {
+	width:20%;
+}    
+
+/* 등록 테이블 */
+.table-container {
+    margin: 20px 0;
+    padding: 10px;
+    background-color: white;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 입력 필드 */
+.input-field {
+    width: calc(100% - 20px);
+    padding: 8px;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* 선택 필드 */
+.select-field {
+    width: calc(100% - 20px);
+    padding: 8px;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+
+/* ------------------------  이력서 상세 페이지(view)  ------------------------*/
+ .div9 {
+   font-family: 'Arial', 'Impact', sans-serif;
+   display: flex;
+   flex-wrap: wrap; 
+   justify-content: center; 
+   gap: 10px;
+   background-color: #F7F7F7;
+   
+		  main {
+		  padding: 40px;
+		  background-color: #ffffff;
+		  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+		  margin: 20px auto;
+		  width: 90%;
+		  max-width: 1100px;
+		  border-radius: 10px; 
+		}
+		.subtitle{
+  font-size: 20px;
+  font-weight: bold;
+  color: black;
+}
+		table {
+		  margin-bottom:40px;
+		 } 
+		h2 {
+		  font-size: 24px;
+		  color: #1f2c63;
+		  margin-bottom: 20px;
+		  font-weight: bold;
+		}
+		
+		table {
+		  width: 100%;
+		  border-collapse: collapse;
+		  
+		}
+		
+		table th, table td {
+		  padding: 12px;
+		  text-align: left;
+		  
+		}
+		
+		table th {
+		  font-size: 13pt;
+		  font-weight: bold;
+		  color: #a9a9a9;
+		  width:15%
+		}
+		td:nth-child(1) {
+		  width:15%
+		}
+		td:nth-child(2) {
+		  width:35%
+		}
+		td:nth-child(3) {
+		  width:15%
+		}
+		td:nth-child(4) {
+		  width:35%
+		}
+}
+  /* 회색 선 */
+.border-bottom {
+  border-bottom: 3px solid #ddd;
+}
+.border-top {
+  border-top: 3px solid #ddd;
+}
+  /* 버튼 정렬*/
+.button {
+    display: flex;
+    justify-content: center; /* 버튼들을 가운데 정렬 */
+    gap: 10px; /* 버튼 간격 조절 */
+    margin-top: 20px; /* 상단 여백 */	
+}
+  /* 제목 */
+.title {
+	font-size: 40px;
+	font-weight: bold;
+}
+
+/* ------------------------  채용공고 등록(postwrite)  ------------------------*/
+ .div10 {
+   font-family: 'Arial', 'Impact', sans-serif;
+   display: flex;
+   flex-wrap: wrap; 
+   justify-content: center; 
+   gap: 10px;
+   background-color: #F7F7F7;
+   
+		  main {
+		  padding: 40px;
+		  background-color: #ffffff;
+		  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+		  margin: 20px auto;
+		  width: 90%;
+		  max-width: 1100px;
+		  border-radius: 10px; 
+		}
+
+		table {
+		  margin-bottom:40px;
+		 } 
+		h2 {
+		  font-size: 24px;
+		  color: #1f2c63;
+		  margin-bottom: 20px;
+		  font-weight: bold;
+		}
+		
+		table {
+		  width: 100%;
+		  border-collapse: collapse;
+		  
+		}
+		
+		table th, table td {
+		  padding: 12px;
+		  text-align: left;
+		}
+		
+		table th {
+		  font-size: 13pt;
+		  font-weight: bold;
+		  color: #a9a9a9;
+		  width:15%
+		}
+		
+.subtitle{
+  font-size: 20px;
+  font-weight: bold;
+  color: black;
+}
+
+  /* 버튼 정렬*/
+.button {
+    display: flex;
+    justify-content: center; /* 버튼들을 가운데 정렬 */
+    gap: 10px; /* 버튼 간격 조절 */	
+}
+
+td.button {
+    text-align: center;       /* 테이블 셀의 가운데 정렬 */
+}
+
+ td {
+	padding: 8px !important;
+}
+td:nth-child(1) {
+	width:15%;
+}
+td:nth-child(2) {
+	width:35%;
+}
+td:nth-child(3) {
+	width:15%;
+}
+td:nth-child(4) {
+	width:35%;
+}    
+
+input[type=datetime-local] {
+  width: 100%;
+  height: 40px;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+/* 등록 테이블 */
+.table-container {
+    margin: 20px 0;
+    padding: 10px;
+    background-color: white;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 입력 필드 */
+.input-field {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* 선택 필드 */
+.select-field {
+    width:100%;
+    padding: 8px;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+}
+}
+
+/* --------------------------  새로운 공고 쓰기 버튼  -------------------------------*/
+.btn1 {
+  display: inline-block; /* 인라인 블록으로 설정 */
+  padding: 10px 15px;
+  margin-right: 5px;
+  border: 1px solid #6c757d; /* 부트스트랩의 기본 색상 */
+  border-radius: 5px;
+  background-color: transparent; /* 투명 배경 */
+  color: #6c757d; /* 기본 텍스트 색상 */
+  font-size: 20px;
+  text-decoration: none; /* 링크의 밑줄 제거 */
+  text-align: center; /* 텍스트 중앙 정렬 */
+  cursor: pointer; /* 커서 포인터로 변경 */
+}
+
+.btn1:hover {
+  background-color: #6c757d; /* 호버 시 배경색 변경 */
+  color: white; /* 호버 시 텍스트 색상 변경 */
+}

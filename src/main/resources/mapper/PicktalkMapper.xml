@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.board.picktalk.mapper.PicktalkMapper">
+
+    <!-- 페이징 처리된 게시글 조회 -->
+    <select id="getAllPosts">
+        SELECT 
+           * 
+        FROM 
+           PICKTALK 
+        ORDER BY POST_ID DESC 
+        OFFSET #{start} ROWS FETCH NEXT #{size} ROWS ONLY
+    </select>
+
+    <!-- 총 게시글 수 조회 -->
+    <select id="getTotalPostsCount">
+        SELECT 
+           COUNT(*) 
+        FROM 
+           PICKTALK
+    </select>
+
+    <!-- 게시글 추가 -->
+   <insert id="insertPost">
+       INSERT INTO 
+           PICKTALK ( USER_ID, TITLE, CONTENT, POST_DATE) 
+       VALUES 
+           ( #{user_id}, #{title}, #{content}, SYSDATE)
+   </insert>
+
+    <!-- 게시글 상세 조회 -->
+    <select id="getPostById" resultType="com.board.picktalk.vo.PicktalkVo">
+        SELECT 
+            * 
+        FROM 
+            PICKTALK 
+        WHERE 
+            POST_ID = #{post_id}
+    </select>
+
+    <!-- 게시글 수정 -->
+    <update id="updatePost">
+        UPDATE 
+            PICKTALK
+        SET 
+            TITLE = #{title},
+            CONTENT = #{content}
+        WHERE 
+            POST_ID = #{post_id} 
+        AND   
+            USER_ID = #{user_id} 
+    </update>
+
+    <!-- 게시글 삭제 -->
+    <delete id="deletePost">
+        DELETE FROM 
+            PICKTALK 
+        WHERE 
+            POST_ID = #{post_id} 
+        AND 
+            USER_ID = #{user_id}  
+    </delete>
+
+    <!-- 댓글 추가 -->
+    <insert id="insertComment">
+        INSERT INTO 
+            PICKTALK_COMMENTS (POST_ID, USER_ID, CONTENT, COMMENT_DATE)
+        VALUES 
+            (#{post_id}, #{user_id}, #{content}, SYSDATE)
+    </insert>
+    
+    <!-- 댓글 수정 -->
+    <update id="updateComment">
+        UPDATE 
+            PICKTALK_COMMENTS
+        SET 
+            CONTENT = #{content}
+        WHERE 
+            COMMENT_ID = #{comment_id} 
+        AND 
+            USER_ID = #{user_id} 
+    </update>
+
+    <!-- 댓글 삭제 -->
+    <delete id="deleteComment">
+        DELETE FROM 
+            PICKTALK_COMMENTS 
+        WHERE 
+            COMMENT_ID = #{comment_id}  
+    </delete>
+    
+    <!-- 게시글 삭제 시 댓글 삭제 -->
+    <delete id="deleteCommentsByPostId">
+        DELETE FROM 
+            PICKTALK_COMMENTS 
+        WHERE 
+            POST_ID = #{post_id}
+    </delete>
+    
+    <select id="getCommentById">
+    SELECT 
+       * 
+    FROM 
+       PICKTALK_COMMENTS 
+    WHERE 
+       COMMENT_ID = #{comment_id}
+   </select>    
+    
+    <!-- 게시글 조회수 증가 -->
+    <update id="incrementVCount">
+        UPDATE 
+            PICKTALK 
+        SET 
+            VCOUNT = VCOUNT + 1 
+        WHERE 
+            POST_ID = #{post_id}
+    </update>
+    
+    <!-- 특정 게시글의 댓글 조회 -->
+    <select id="getCommentsByPostId" >
+        SELECT 
+            * 
+        FROM 
+            PICKTALK_COMMENTS 
+        WHERE 
+            POST_ID = #{post_id} 
+        ORDER BY 
+            COMMENT_DATE ASC
+    </select>
+
+    <!-- 사용자 ID 확인 -->
+    <select id="checkUserExists">
+        SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END 
+        FROM (
+            SELECT 1 
+            FROM USERS 
+            WHERE USER_ID = #{user_id}
+            UNION ALL
+            SELECT 1 
+            FROM COMPANY_USERS 
+            WHERE USER_ID = #{user_id}
+        )
+    </select>
+
+</mapper>
